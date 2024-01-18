@@ -1,0 +1,51 @@
+version: '3.7'
+
+services:
+  client:
+    image: ${CLIENT_IMAGE}
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.services.${APP_NAME}-client.loadbalancer.server.port=8000"
+        - "traefik.http.routers.${APP_NAME}-client.rule=Host(`${APP_HOST}`)"
+        - "traefik.http.routers.${APP_NAME}-client.entrypoints=web"
+        - "traefik.http.routers.${APP_NAME}-client.middlewares=${APP_NAME}-client"
+        - "traefik.http.routers.${APP_NAME}-client-secure.rule=Host(`${APP_HOST}`)"
+        - "traefik.http.routers.${APP_NAME}-client-secure.entrypoints=websecure"
+        - "traefik.http.routers.${APP_NAME}-client-secure.tls=true"
+        - "traefik.http.middlewares.${APP_NAME}-client.redirectscheme.scheme=https"
+        - "traefik.http.middlewares.${APP_NAME}-client.redirectscheme.permanent=true"
+      restart_policy:
+        condition: on-failure
+    environment:
+      PORT: 8000
+      REACT_APP_API_URL: "https://${APP_HOST}/api/"
+      REACT_APP_SENTRY_DSN: "${SENTRY_DSN}"
+    networks:
+      - traefik-public
+
+  server:
+    image: ${SERVER_IMAGE}
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.services.${APP_NAME}-server.loadbalancer.server.port=3000"
+        - "traefik.http.routers.${APP_NAME}-server.rule=Host(`${APP_HOST}`) && PathPrefix(`/api`)"
+        - "traefik.http.routers.${APP_NAME}-server.entrypoints=web"
+        - "traefik.http.routers.${APP_NAME}-server.middlewares=${APP_NAME}-server"
+        - "traefik.http.routers.${APP_NAME}-server-secure.rule=Host(`${APP_HOST}`) && PathPrefix(`/api`)"
+        - "traefik.http.routers.${APP_NAME}-server-secure.entrypoints=websecure"
+        - "traefik.http.routers.${APP_NAME}-server-secure.tls=true"
+        - "traefik.http.middlewares.${APP_NAME}-server.redirectscheme.scheme=https"
+        - "traefik.http.middlewares.${APP_NAME}-server.redirectscheme.permanent=true"
+      restart_policy:
+        condition: on-failure
+    environment:
+      NODE_ENV: "${NODE_ENV}"
+      SENTRY_DSN: "${SENTRY_DSN}"
+    networks:
+      - traefik-public
+
+networks:
+  traefik-public:
+    external: true

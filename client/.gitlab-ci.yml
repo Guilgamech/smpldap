@@ -1,0 +1,15 @@
+stages:
+  - build
+
+build:
+  stage: build
+  image: docker:latest
+  variables:
+    IMAGE_TAG: $CI_REGISTRY_IMAGE/client:$CI_COMMIT_REF_SLUG
+  before_script:
+    - cd client
+    - docker info
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  script:
+    - docker build --pull -t "$IMAGE_TAG" .
+    - docker push -q "$IMAGE_TAG"
