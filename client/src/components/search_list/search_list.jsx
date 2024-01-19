@@ -22,6 +22,7 @@ import { connect } from "react-redux";
 import * as actionTypes from "../../store/action";
 import "./search_table.css";
 import EditModal from "../modal/modal_editar";
+import EditUser from "../EditUser";
 class Search_List extends Component {
   constructor(props) {
     super(props);
@@ -37,7 +38,9 @@ class Search_List extends Component {
       dialogVisible: false,
       dialogVisible1: false,
       dialogVisible2: false,
-      identification: ""
+      editUserModal: false,
+      editUserField: {dn:"", field:{ label:"", name:"", type:"text", value:"", validation:()=>""}},
+      identification: "",
     };
   }
   componentDidMount() {
@@ -62,7 +65,23 @@ class Search_List extends Component {
       error: false,
     });
   }
-
+  setEditUserField(value={dn:"", field:{label:"", name:"", type:"text", value:"", validation:()=>""}}){
+    this.setState({editUserField: {...value}})
+  }
+  setEditUserModal(value=false){
+    this.setState({editUserModal: value})
+  }
+  actionEditUser(props){
+    return new Promise(resolve=>{
+        const {field, dn} = props
+        let modification = {}
+        if(dn && typeof dn === 'string' && field && field.name && typeof field.name === 'string' && field.type && typeof field.type === 'string' && field.value && typeof field.value === field.type){
+            modification[field.name] = field.value
+        }
+        console.log({dn, modification})
+        resolve()
+    })
+  }
   changePassword(key) {
     let user = JSON.parse(localStorage.getItem("user"));
     let { listOfUser } = this.state;
@@ -141,8 +160,7 @@ class Search_List extends Component {
         }
       )
       .then((r) => {
-        this.setState({ listOfUser: r.data, search: true, loading: false });
-       
+        this.setState({ listOfUser: r.data, search: true, loading: false });       
       });
      
     
@@ -499,7 +517,24 @@ class Search_List extends Component {
                                     />
                                   </Dropdown.Item>
                                   <Dropdown.Item>
-                                    <Modal
+                                    <button style={{width:'100%', height:'100%', textAlign:'left', color:'rgb(32, 160, 255)'}} onClick={(event)=>{
+                                        event.preventDefault()
+                                        event.stopPropagation()
+                                        console.log("clicked")
+                                        this.setEditUserField({ dn:user.dn, field:{
+                                            label:"Carné de Identidad",
+                                            name:"identification", 
+                                            type:"text", 
+                                            value:user.identification, 
+                                            validation:(value="")=>{
+                                                return ""
+                                            }
+                                        }})
+                                        this.setEditUserModal(true)
+                                    }}>
+                                        Editar carné
+                                    </button>
+                                    {/* <Modal
                                       user={user}
                                       nameButton="Editar carné"
                                       bodyDocument="CI: "
@@ -513,7 +548,7 @@ class Search_List extends Component {
                                         index,
                                         "identification"
                                       )}
-                                    />
+                                    /> */}
                                   </Dropdown.Item>
                                   <Dropdown.Item>
                                   <Modal
@@ -793,6 +828,7 @@ class Search_List extends Component {
         ) : (
           ""
         )}
+        <EditUser userField={this.state.editUserField} showModal={this.state.editUserModal} hideModal={()=>this.setEditUserModal(!this.state.editUserModal)} />
       </div>
     );
   }

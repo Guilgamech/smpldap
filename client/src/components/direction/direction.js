@@ -1,7 +1,7 @@
 import Configuration from "../../utils/configuration";
 
-export const API = Configuration.value("apiUrl");
-//export const API = 'http://localhost:3000/api/';
+//export const API = Configuration.value("apiUrl");
+export const API = 'https://smpldap.reduc.edu.cu/api/';
 
 export const API_LOGIN = API + "login";
 export const API_LOGOUT = API + "logout";
